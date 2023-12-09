@@ -48,6 +48,16 @@ class Graph():
             print("Error: Node not found")
 
 
+    def delete_edge(self, value1, value2):
+        if value1 in self.nodes and value2 in self.nodes:
+            if value2 in self.nodes[value1].adjacent:
+                del self.nodes[value1].adjacent[value2]
+            if value1 in self.nodes[value2].adjacent:
+                del self.nodes[value2].adjacent[value1]
+        else:
+            print("Error: Node not found")
+
+
 
     def length(self):
         return len(self.nodes)
@@ -84,7 +94,7 @@ class Graph():
 
 
     def save_node(self):
-        with open("station.txt", "r+",encoding="utf-8") as f:
+        with open("graph/station.txt", "r+",encoding="utf-8") as f:
             node = f.read()
             stations = node.split("\n")
             # print(stations)
@@ -97,11 +107,11 @@ class Graph():
                 lines[current_line].append(station.strip())
 
             # print(node)
-        for i in stations[1:17]:
+        for i in stations[1:16]:
                 self.add_node(i)
-        for i in stations[19:43]:
+        for i in stations[18:41]:
                 self.add_node(i)
-        for i in stations[45:]:
+        for i in stations[43:]:
                 self.add_node(i)
 
         return lines
@@ -152,13 +162,112 @@ class Graph():
 
 
 
-# if __name__ == "__main__":
-#     g = Graph()
-#     # g.save_to_json("graph.json")
-#     g.load_from_json("graph.json")
-#     g.print_graph()
-#     print(g.Dijkstra("西塱"))
-#     print(g.find_shortest_path("西塱","梅花园"))
+    
+    def get_station_mapping(self):
+        with open("graph/station.txt", "r+", encoding="utf-8") as f:
+            station_read = f.readlines()
+            lines = [[], [], []]  # Assuming there are three lines as mentioned
+            current_line = -1
+            for station in station_read:
+                if '号线' in station:
+                    current_line += 1
+                elif station.strip() != '':
+                    lines[current_line].append(station.strip())
+            # print(lines)
+            dist = {}
+            for i in lines[0]:
+                dist[i] = "一号线"
+            for i in lines[1]:
+                if dist.get(i):
+                    dist[i] = "[一号线,二号线]"
+                else:
+                    dist[i] = "二号线"
+
+            for i in lines[2]:
+                if dist.get(i):
+                    if "二号线" in dist[i]:
+                        dist[i] = "[二号线,三号线]"
+                    else:
+                        dist[i] = "[一号线,三号线]"
+                else:
+                    dist[i] = "三号线"
+
+            return dist
+        
+
+    def group_stations_by_line(self,stations, station_line_map):
+    # 存储分组后的站台和线路转换信息
+        grouped_path = []
+        current_line = None
+        for i in stations:
+            for station in i:
+                lines_at_station = station_line_map.get(station)
+                # 如果当前线路不在该站的线路列表中，说明发生了线路转换
+                if not current_line or current_line not in lines_at_station:
+                    current_line = lines_at_station[0:
+                                                    3] if lines_at_station else '未知线路'
+                    # 将线路转换信息添加到grouped_path
+                    grouped_path.append(
+                        {'line_change': current_line, 'stations': [station]})
+                else:
+                    # 如果没有发生线路转换，继续添加站台到当前线路的分组中
+                    grouped_path[-1]['stations'].append(station)
+
+        return grouped_path
+
+
+        
+    def find_all_paths(self, start, end, path=[]):
+        path = path + [start]
+        if start == end:
+            return [path]
+        paths = []
+        for node in self.nodes[start].adjacent.keys():
+            if node not in path:
+                new_paths = self.find_all_paths(node, end, path)
+                for new_path in new_paths:
+                    paths.append(new_path)
+        return paths
+    
+
+    def find_least_station_path(self, start, end):
+        paths = self.find_all_paths(start, end)
+        least_station_path = paths[0]
+        for path in paths:
+            if len(path) < len(least_station_path):
+                least_station_path = path
+        return least_station_path
+    
+
+    def find_least_transfer_path(self, start, end):
+        paths = self.find_all_paths(start, end)
+        all_transfer_path = g.group_stations_by_line(paths,g.get_station_mapping())
+        # print(all_transfer_path)
+        # for path in all_transfer_path:
+        #     print(path)
+
+        
+                     
+   
+
+
+if __name__ == "__main__":
+    g = Graph()
+    # g.save_node()
+    # g.add_edges_with_random_weights(g.save_node())
+    # g.delete_edge("天河客运站","林和西")
+    # g.add_edge("体育西路", 5, "林和西")
+    # g.save_to_json("graph/graph.json")
+    g.load_from_json("graph/graph.json")
+    # g.print_graph()
+    # print(g.Dijkstra("西塱"))
+    # print(g.find_shortest_path("西塱","梅花园"))
+    # print(g.find_all_paths("机场南","西塱"))
+    # print(g.get_station_mapping())
+    # print(g.find_least_station_path("机场南","西塱"))
+    # g.find_least_transfer_path("机场南","西塱")
+    g.find_least_transfer_path("机场南","西塱")
+
 
 
 
