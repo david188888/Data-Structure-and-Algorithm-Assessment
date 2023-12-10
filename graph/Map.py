@@ -181,6 +181,9 @@ class Graph():
         # 存储分组后的站台和线路转换信息
         grouped_path = []
         current_line = None
+        end = stations[-1][-1]
+
+
         for i in stations:
             for station in i:
                 lines_at_station = station_line_map.get(station)
@@ -191,10 +194,21 @@ class Graph():
                     # 将线路转换信息添加到grouped_path
                     grouped_path.append(
                         {'line_change': current_line, 'stations': [station]})
+                # 如果没有发生线路转换
                 else:
-                    # 如果没有发生线路转换，继续添加站台到当前线路的分组中
-                    grouped_path[-1]['stations'].append(station)
+                    # 此站是终点站
+                    if station == end:
+                        grouped_path[-1]['stations'].append(station)
+                        current_line = lines_at_station[0:
+                                                        4] if lines_at_station else '未知线路'
+                        # 将线路转换信息添加到grouped_path
+                        grouped_path.append(
+                            {'line_change': current_line, 'stations': []})
+                    else:
+                        # 此站不是终点站，继续添加站台到当前线路的分组中
+                        grouped_path[-1]['stations'].append(station)
 
+        grouped_path= [item for item in grouped_path if item["stations"] != []]
         return grouped_path
 
     def find_all_paths(self, start, end, path=[]):
@@ -230,7 +244,9 @@ class Graph():
             if end in path["stations"]:
                 result.append(way)
                 way = []
+
         result = sorted(result, key=lambda x: len(x))[:2]
+
         if len(result[0]) == len(result[-1]):
             len0 = len(result[0][0]["stations"]) + \
                 len(result[0][1]["stations"])
@@ -248,7 +264,7 @@ class Graph():
                 return merged_stations
         else:
             merged_stations = []
-            [merged_stations.extend(item["stations"]) for item in result[1]]
+            [merged_stations.extend(item["stations"]) for item in result[0]]
             return merged_stations
 
 
