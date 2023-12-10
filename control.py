@@ -133,7 +133,7 @@ def main():
     put_markdown("# 乘车路线查询")
     with use_scope('first'):
         put_text("请选择起点和终点站：").style('margin-top: 10%;,font-size:20px;')
-    img = open('map.jpg', 'rb').read()
+    img = open('./source/map.jpg', 'rb').read()
     put_image(img, width='auto', height='auto').style('position: center;')
 
     inputs = input_group("选择起点和终点", [

@@ -252,14 +252,14 @@ class Graph():
             return merged_stations
 
 
-# if __name__ == "__main__":
-#     g = Graph()
+if __name__ == "__main__":
+    g = Graph()
     # g.save_node()
     # g.add_edges_with_random_weights(g.save_node())
     # g.delete_edge("天河客运站","林和西")
     # g.add_edge("体育西路", 5, "林和西")
     # g.save_to_json("graph/graph.json")
-    # g.load_from_json("graph/graph.json")
+    g.load_from_json("graph/graph.json")
     # g.print_graph()
     # print(g.Dijkstra("西塱"))
     # print(g.find_shortest_path("西塱","梅花园"))
@@ -269,4 +269,4 @@ class Graph():
     # g.find_least_transfer_path("机场南","西塱")
     # print(f"最短线路：{g.find_shortest_path('机场南', '西塱')}\n")
     # print(f"最少站点：{g.find_least_station_path('机场南', '西塱')}\n")
-    # print(f"最少换乘：{g.find_least_transfer_path('机场南', '西塱')}\n")
+    print(f"最少换乘：{g.find_least_transfer_path('机场南', '西塱')}\n")
