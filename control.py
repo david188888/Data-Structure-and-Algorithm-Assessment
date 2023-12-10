@@ -1,6 +1,6 @@
 from pywebio.input import *
 from pywebio.output import *
-
+from pywebio.session import hold
 from graph import Map
 from graph.Map import *
 
@@ -73,7 +73,6 @@ def group_stations_by_line(stations, station_line_map):
 
 def create_station_table(grouped_path):
     html_content = "<div style='white-space: nowrap;'>"
-
     for i, segment in enumerate(grouped_path):
         line_name = segment['line_change']
         stations = segment['stations']
@@ -93,17 +92,48 @@ def create_station_table(grouped_path):
         # If it's not the last segment, add a downward arrow to indicate a line change
         if i < len(grouped_path) - 1:
             html_content += "<td>⬇️</td>"
-    # Close the outer div
-    html_content += "</div>"
+        # Close the outer div
+        html_content += "</div>"
 
     return html_content
 
 
-def main(grouped_path, mapping_dict):
+def crate_show_path(start, end, g):
+    def show_path(path_type):
+        shortest_distance_path, distance = g.find_shortest_path(start, end)
+        least_station_path, length = g.find_least_station_path(start, end)
+        least_transfer_path = g.find_least_transfer_path(start, end)
+        if path_type == '最少站点数':
+            less_path = least_station_path
+            path = group_stations_by_line(less_path, mapping_dict)
+        elif path_type == '最短距离':
+            short_path = shortest_distance_path
+            path = group_stations_by_line(short_path, mapping_dict)
+        else:
+            timeless_path = least_transfer_path
+            path = group_stations_by_line(timeless_path, mapping_dict)
+
+        with use_scope('wait', clear=True):
+            put_markdown("## %s路线为:" % path_type)
+            if path_type == '最短距离':
+                put_html(create_station_table(path))
+                put_html("最短路线长度为: <b><span style='font-size:20px;'>%s</span></b> km" %
+                         distance).style('position: absolute; left: 50%; transform: translateX(-50%);')
+            elif path_type == '最少站点数':
+                put_html(create_station_table(path))
+                put_html("最少站点数为: <b><span style='font-size:20px;'>%s</span></b> 站" %
+                         length).style('position: absolute; left: 50%; transform: translateX(-50%);')
+            else:
+
+                put_html(create_station_table(path))
+    return show_path
+
+
+def main():
     put_markdown("# 乘车路线查询")
     with use_scope('first'):
         put_text("请选择起点和终点站：").style('margin-top: 10%;,font-size:20px;')
-    img = open('map.jpg', 'rb').read()
+    img = open('./source/map.jpg', 'rb').read()
     put_image(img, width='auto', height='auto').style('position: center;')
 
     inputs = input_group("选择起点和终点", [
@@ -119,23 +149,15 @@ def main(grouped_path, mapping_dict):
                  (start, end)).style('margin-top: 10px;')
     g = Map.Graph()
     g.load_from_json("./graph/graph.json")
-
-    path, distance = g.find_shortest_path(start, end)
-
     use_scope('wait', clear=True)
-    grouped_path = group_stations_by_line(path, mapping_dict)
-    put_markdown("## 最短路线为：")
-    put_html(create_station_table(grouped_path))
-
-    put_html("最短路线长度为: <b><span style='font-size:20px;'>%s</span></b> km" %
-             distance).style('position: absolute; left: 50%; transform: translateX(-50%);')
+    put_buttons(['最短距离', '最少站点数', '最少换乘'], onclick=crate_show_path(start, end, g)).style(
+        'position: absolute; left: 50%; transform: translateX(-50%);')
+    hold()
 
 
 if __name__ == '__main__':
     mapping_dict = get_station_mapping()
     station_path = get_station_name()
     grouped_path = group_stations_by_line(station_path, mapping_dict)
-    # print(mapping_dict)
-    # print(2222)
     # print(grouped_path)
-    main(grouped_path, mapping_dict)
+    main()

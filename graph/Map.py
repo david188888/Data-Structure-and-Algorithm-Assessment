@@ -1,6 +1,8 @@
 import random
 from collections import defaultdict
 import json
+
+
 class stack():
     def __init__(self):
         self.items = []
@@ -21,20 +23,18 @@ class stack():
         return self.items[-1]
 
 
-
 class Node():
-    def __init__(self,value):
+    def __init__(self, value):
         self.value = value
-        self.adjacent = {} # list of adjacent nodes
+        self.adjacent = {}  # list of adjacent nodes
 
     def add_adjacent(self, node, weight):
         self.adjacent[node.value] = weight
 
 
-
 class Graph():
     def __init__(self):
-        self.nodes = {} # dictionary of nodes
+        self.nodes = {}  # dictionary of nodes
 
     def add_node(self, value):
         if value not in self.nodes:
@@ -42,11 +42,10 @@ class Graph():
 
     def add_edge(self, value1, weight, value2):
         if value1 in self.nodes and value2 in self.nodes:
-            self.nodes[value1].add_adjacent(self.nodes[value2],weight)
-            self.nodes[value2].add_adjacent(self.nodes[value1],weight)
+            self.nodes[value1].add_adjacent(self.nodes[value2], weight)
+            self.nodes[value2].add_adjacent(self.nodes[value1], weight)
         else:
             print("Error: Node not found")
-
 
     def delete_edge(self, value1, value2):
         if value1 in self.nodes and value2 in self.nodes:
@@ -57,31 +56,24 @@ class Graph():
         else:
             print("Error: Node not found")
 
-
-
     def length(self):
         return len(self.nodes)
-    
 
-        
     def print_graph(self):
         for key in list(self.nodes.keys()):
             print(key, " --> ", end=" ")
             for node, weight in self.nodes[key].adjacent.items():
-                print(node, "(",weight,")", end=" | ")
+                print(node, "(", weight, ")", end=" | ")
             print()
 
-
-    def save_to_json(self,filepath):
+    def save_to_json(self, filepath):
         graph_data = {}
         for key, node in self.nodes.items():
             graph_data[key] = node.adjacent
         with open(filepath, 'w') as f:
             json.dump(graph_data, f, indent=4)
 
-
-
-    def load_from_json(self,filepath):
+    def load_from_json(self, filepath):
         with open(filepath, 'r') as f:
             graph_data = json.load(f)
             self.nodes.clear()
@@ -91,10 +83,8 @@ class Graph():
                 self.add_node(node)
                 self.nodes[key].add_adjacent(self.nodes[node], weight)
 
-
-
     def save_node(self):
-        with open("graph/station.txt", "r+",encoding="utf-8") as f:
+        with open("graph/station.txt", "r+", encoding="utf-8") as f:
             node = f.read()
             stations = node.split("\n")
             # print(stations)
@@ -108,23 +98,20 @@ class Graph():
 
             # print(node)
         for i in stations[1:16]:
-                self.add_node(i)
+            self.add_node(i)
         for i in stations[18:41]:
-                self.add_node(i)
+            self.add_node(i)
         for i in stations[43:]:
-                self.add_node(i)
+            self.add_node(i)
 
         return lines
 
-
-    def add_edges_with_random_weights(self,stations):
+    def add_edges_with_random_weights(self, stations):
         for line in stations:
             for i in range(len(line) - 1):
-                weight = random.randint(1, 20)  # Random weight between 1 and 20
+                # Random weight between 1 and 20
+                weight = random.randint(1, 20)
                 self.add_edge(line[i], weight, line[i + 1])
-
-
-
 
     def Dijkstra(self, start):
         distance = {}
@@ -148,7 +135,7 @@ class Graph():
             visited.append(min_node)
             unvisited.remove(min_node)
         return distance
-    
+
     def find_shortest_path(self, start, end):
         distance = self.Dijkstra(start)
         path = [end]
@@ -158,11 +145,7 @@ class Graph():
                     path.append(node)
                     end = node
         return path[::-1], distance[path[0]]
-    
 
-
-
-    
     def get_station_mapping(self):
         with open("graph/station.txt", "r+", encoding="utf-8") as f:
             station_read = f.readlines()
@@ -193,10 +176,9 @@ class Graph():
                     dist[i] = "三号线"
 
             return dist
-        
 
-    def group_stations_by_line(self,stations, station_line_map):
-    # 存储分组后的站台和线路转换信息
+    def group_stations_by_line(self, stations, station_line_map):
+        # 存储分组后的站台和线路转换信息
         grouped_path = []
         current_line = None
         for i in stations:
@@ -215,8 +197,6 @@ class Graph():
 
         return grouped_path
 
-
-        
     def find_all_paths(self, start, end, path=[]):
         path = path + [start]
         if start == end:
@@ -228,7 +208,6 @@ class Graph():
                 for new_path in new_paths:
                     paths.append(new_path)
         return paths
-    
 
     def find_least_station_path(self, start, end):
         paths = self.find_all_paths(start, end)
@@ -236,12 +215,13 @@ class Graph():
         for path in paths:
             if len(path) < len(least_station_path):
                 least_station_path = path
-        return least_station_path
-    
+        length = len(least_station_path)
+        return least_station_path, length
 
     def find_least_transfer_path(self, start, end):
         paths = self.find_all_paths(start, end)
-        all_transfer_path = g.group_stations_by_line(paths,g.get_station_mapping())
+        all_transfer_path = self.group_stations_by_line(
+            paths, self.get_station_mapping())
         # print(all_transfer_path)
         result = []
         way = []
@@ -252,25 +232,24 @@ class Graph():
                 way = []
         result = sorted(result, key=lambda x: len(x))[:2]
         if len(result[0]) == len(result[-1]):
-            len0 = len(result[0][0]["stations"]) + len(result[0][1]["stations"])
-            len1 = len(result[1][0]["stations"]) + len(result[1][1]["stations"])
+            len0 = len(result[0][0]["stations"]) + \
+                len(result[0][1]["stations"])
+            len1 = len(result[1][0]["stations"]) + \
+                len(result[1][1]["stations"])
             if len0 < len1:
                 merged_stations = []
-                [merged_stations.extend(item["stations"]) for item in result[0]]
+                [merged_stations.extend(item["stations"])
+                 for item in result[0]]
                 return merged_stations
             else:
                 merged_stations = []
-                [merged_stations.extend(item["stations"]) for item in result[1]]
+                [merged_stations.extend(item["stations"])
+                 for item in result[1]]
                 return merged_stations
         else:
             merged_stations = []
             [merged_stations.extend(item["stations"]) for item in result[1]]
             return merged_stations
-
-
-
-                     
-   
 
 
 if __name__ == "__main__":
@@ -288,8 +267,6 @@ if __name__ == "__main__":
     # print(g.get_station_mapping())
     # print(g.find_least_station_path("机场南","西塱"))
     # g.find_least_transfer_path("机场南","西塱")
-    print(g.find_least_transfer_path("机场南", "西塱"))
-
-
-
-
+    # print(f"最短线路：{g.find_shortest_path('机场南', '西塱')}\n")
+    # print(f"最少站点：{g.find_least_station_path('机场南', '西塱')}\n")
+    print(f"最少换乘：{g.find_least_transfer_path('机场南', '西塱')}\n")
