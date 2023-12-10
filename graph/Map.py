@@ -205,7 +205,7 @@ class Graph():
                 # 如果当前线路不在该站的线路列表中，说明发生了线路转换
                 if not current_line or current_line not in lines_at_station:
                     current_line = lines_at_station[0:
-                                                    3] if lines_at_station else '未知线路'
+                                                    4] if lines_at_station else '未知线路'
                     # 将线路转换信息添加到grouped_path
                     grouped_path.append(
                         {'line_change': current_line, 'stations': [station]})
@@ -243,10 +243,32 @@ class Graph():
         paths = self.find_all_paths(start, end)
         all_transfer_path = g.group_stations_by_line(paths,g.get_station_mapping())
         # print(all_transfer_path)
-        # for path in all_transfer_path:
-        #     print(path)
+        result = []
+        way = []
+        for path in all_transfer_path:
+            way.append(path)
+            if end in path["stations"]:
+                result.append(way)
+                way = []
+        result = sorted(result, key=lambda x: len(x))[:2]
+        if len(result[0]) == len(result[-1]):
+            len0 = len(result[0][0]["stations"]) + len(result[0][1]["stations"])
+            len1 = len(result[1][0]["stations"]) + len(result[1][1]["stations"])
+            if len0 < len1:
+                merged_stations = []
+                [merged_stations.extend(item["stations"]) for item in result[0]]
+                return merged_stations
+            else:
+                merged_stations = []
+                [merged_stations.extend(item["stations"]) for item in result[1]]
+                return merged_stations
+        else:
+            merged_stations = []
+            [merged_stations.extend(item["stations"]) for item in result[1]]
+            return merged_stations
 
-        
+
+
                      
    
 
@@ -266,7 +288,7 @@ if __name__ == "__main__":
     # print(g.get_station_mapping())
     # print(g.find_least_station_path("机场南","西塱"))
     # g.find_least_transfer_path("机场南","西塱")
-    g.find_least_transfer_path("机场南","西塱")
+    print(g.find_least_transfer_path("机场南", "西塱"))
 
 
 
