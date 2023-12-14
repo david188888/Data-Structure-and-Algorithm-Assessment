@@ -183,7 +183,6 @@ class Graph():
         current_line = None
         end = stations[-1][-1]
 
-
         for i in stations:
             for station in i:
                 lines_at_station = station_line_map.get(station)
@@ -208,7 +207,8 @@ class Graph():
                         # 此站不是终点站，继续添加站台到当前线路的分组中
                         grouped_path[-1]['stations'].append(station)
 
-        grouped_path= [item for item in grouped_path if item["stations"] != []]
+        grouped_path = [
+            item for item in grouped_path if item["stations"] != []]
         return grouped_path
 
     def find_all_paths(self, start, end, path=[]):
@@ -285,4 +285,4 @@ if __name__ == "__main__":
     # g.find_least_transfer_path("机场南","西塱")
     # print(f"最短线路：{g.find_shortest_path('机场南', '西塱')}\n")
     # print(f"最少站点：{g.find_least_station_path('机场南', '西塱')}\n")
-    print(f"最少换乘：{g.find_least_transfer_path('机场南', '西塱')}\n")
+    print(f"最少换乘：{g.find_least_transfer_path('西塱', '五山')}\n")
