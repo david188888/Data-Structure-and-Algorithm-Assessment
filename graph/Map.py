@@ -206,9 +206,7 @@ class Graph():
                     else:
                         # 此站不是终点站，继续添加站台到当前线路的分组中
                         grouped_path[-1]['stations'].append(station)
-
-        grouped_path = [
-            item for item in grouped_path if item["stations"] != []]
+        grouped_path= [item for item in grouped_path if item["stations"] != []]
         return grouped_path
 
     def find_all_paths(self, start, end, path=[]):
@@ -244,14 +242,15 @@ class Graph():
             if end in path["stations"]:
                 result.append(way)
                 way = []
-
         result = sorted(result, key=lambda x: len(x))[:2]
 
         if len(result[0]) == len(result[-1]):
-            len0 = len(result[0][0]["stations"]) + \
-                len(result[0][1]["stations"])
-            len1 = len(result[1][0]["stations"]) + \
-                len(result[1][1]["stations"])
+            len0 = 0
+            for line in result[0]:
+                len0 += len(line["stations"])
+            len1 = 0
+            for line in result[-1]:
+                len1 += len(line["stations"])
             if len0 < len1:
                 merged_stations = []
                 [merged_stations.extend(item["stations"])
@@ -260,7 +259,7 @@ class Graph():
             else:
                 merged_stations = []
                 [merged_stations.extend(item["stations"])
-                 for item in result[1]]
+                 for item in result[-1]]
                 return merged_stations
         else:
             merged_stations = []
